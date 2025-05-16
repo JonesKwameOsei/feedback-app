@@ -1,58 +1,108 @@
 import { createContext, useState, useEffect } from "react";
 
-
 const FeedbackContext = createContext();
 
 export const FeedbackProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
-  const [feedback, setFeedback ] = useState([]);
+  const [feedback, setFeedback] = useState([]);
   const [feedbackEdit, setFeedbackEdit] = useState({
     item: {},
     edit: false,
   });
 
-  useEffect(() => {
-    fetchFeedback();
-  }, []);
-
-  
   const API_URL = import.meta.env.DEV
     ? import.meta.env.VITE_API_URL
     : '/api';
-  
-  // Fetch feedback
-  const fetchFeedback = async () => {
-    const response = await fetch(`${API_URL}/feedback`);
-    let data = [];
-    if (response.headers.get('content-type')?.includes('application/json')) {
-      data = await response.json();
-      data.reverse();
+
+  // Initialize from localStorage or API
+  useEffect(() => {
+    const loadFeedback = async () => {
+      // First try to load from localStorage
+      const localData = localStorage.getItem('feedbackItems');
+
+      if (localData) {
+        // If we have local data, use it
+        setFeedback(JSON.parse(localData));
+        setIsLoading(false);
+      } else {
+        // Otherwise fetch from API
+        await fetchFeedback();
+      }
+    };
+
+    loadFeedback();
+  }, []);
+
+  // Save to localStorage whenever feedback changes
+  useEffect(() => {
+    if (!isLoading) {
+      localStorage.setItem('feedbackItems', JSON.stringify(feedback));
     }
-    setFeedback(data);
-    setIsLoading(false);
-  }
+  }, [feedback, isLoading]);
+
+  // Fetch feedback from API
+  const fetchFeedback = async () => {
+    try {
+      const response = await fetch(`${API_URL}/feedback`);
+      let data = [];
+      if (response.headers.get('content-type')?.includes('application/json')) {
+        data = await response.json();
+        data.reverse();
+      }
+      setFeedback(data);
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Error fetching feedback:', error);
+      setIsLoading(false);
+    }
+  };
 
   // Add feedback
   const addFeedback = async (newFeedback) => {
-    const response = await fetch(`${API_URL}/feedback`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newFeedback)
-    });
-    let data = {};
-    if (response.headers.get('content-type')?.includes('application/json')) {
-      data = await response.json();
+    try {
+      const response = await fetch(`${API_URL}/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newFeedback)
+      });
+
+      let data = {};
+      if (response.headers.get('content-type')?.includes('application/json')) {
+        data = await response.json();
+      } else {
+        // If server doesn't respond with JSON, create our own data
+        data = {
+          ...newFeedback,
+          id: Date.now()
+        };
+      }
+
+      setFeedback([data, ...feedback]);
+    } catch (error) {
+      console.error('Error adding feedback:', error);
+      // Still update UI even if API call fails
+      const fallbackData = {
+        ...newFeedback,
+        id: Date.now()
+      };
+      setFeedback([fallbackData, ...feedback]);
     }
-    setFeedback([data, ...feedback]);
-  }
-  
+  };
+
   // Delete feedback
   const deleteFeedback = async (id) => {
     if (window.confirm('Are you sure you want to delete?')) {
-      await fetch(`${API_URL}/feedback/${id}`, { method: 'DELETE' });
+      try {
+        // Try API call first
+        await fetch(`${API_URL}/feedback/${id}`, { method: 'DELETE' });
+      } catch (error) {
+        console.error('Error deleting on server:', error);
+      }
+
+      // Update UI regardless of API success
       setFeedback(feedback.filter((item) => item.id !== id));
     }
-  }
+  };
 
   // Update feedback item
   const updateFeedback = async (id, updateItem) => {
@@ -63,13 +113,21 @@ export const FeedbackProvider = ({ children }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updateItem),
       });
+
       let data = {};
       if (response.headers.get('content-type')?.includes('application/json')) {
         data = await response.json();
+      } else {
+        // If server doesn't respond with JSON, create our own data
+        data = {
+          ...updateItem,
+          id: id
+        };
       }
+
+      // Update UI with new data
       setFeedback(
-        feedback.map((item) => (item.id === id
-          ? data : item))
+        feedback.map((item) => (item.id === id ? data : item))
       );
 
       setFeedbackEdit({
@@ -78,6 +136,21 @@ export const FeedbackProvider = ({ children }) => {
       });
     } catch (error) {
       console.error('Update error:', error);
+
+      // Update UI even if server fails
+      const updatedItem = {
+        ...updateItem,
+        id: id
+      };
+
+      setFeedback(
+        feedback.map((item) => (item.id === id ? updatedItem : item))
+      );
+
+      setFeedbackEdit({
+        item: {},
+        edit: false,
+      });
     }
   };
 
@@ -86,8 +159,8 @@ export const FeedbackProvider = ({ children }) => {
     setFeedbackEdit({
       item,
       edit: true,
-    })
-  }
+    });
+  };
 
   return (
     <FeedbackContext.Provider value={{
@@ -101,7 +174,7 @@ export const FeedbackProvider = ({ children }) => {
     }}>
       {children}
     </FeedbackContext.Provider>
-  )
-}
+  );
+};
 
 export default FeedbackContext;
