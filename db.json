@@ -1,0 +1,24 @@
+{
+  "feedback": [
+    {
+      "id": "1",
+      "rating": 9,
+      "text": "The new UI is much more intuitive and responsive than before!"
+    },
+    {
+      "id": "2",
+      "rating": 10,
+      "text": "This tool has completely transformed our workflow - worth every penny!"
+    },
+    {
+      "id": "3",
+      "rating": 10,
+      "text": "Customer service was exceptional - they resolved my issue within minutes"
+    },
+    {
+      "id": "dd91",
+      "text": "this is a test",
+      "rating": 6
+    }
+  ]
+}
