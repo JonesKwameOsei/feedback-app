@@ -9,4 +9,15 @@ export default defineConfig({
       '/feedback': 'http://localhost:5000',
     },
   },
+  build: {
+    outDir: 'dist',
+    // Ensure proper handling of JavaScript files
+    rollupOptions: {
+      output: {
+        entryFileNames: 'assets/[name].[hash].js',
+        chunkFileNames: 'assets/[name].[hash].js',
+        assetFileNames: 'assets/[name].[hash].[ext]'
+      }
+    }
+  },
 });
