@@ -68,8 +68,14 @@ export const FeedbackProvider = ({ children }) => {
         data = await response.json();
       }
       setFeedback(
-        feedback.map((item) => (item.id === id ? { ...item, ...data } : item))
+        feedback.map((item) => (item.id === id
+          ? data : item))
       );
+
+      setFeedbackEdit({
+        item: {},
+        edit: false,
+      });
     } catch (error) {
       console.error('Update error:', error);
     }
