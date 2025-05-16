@@ -4,10 +4,10 @@ import { feedback } from '../data.js';
 export default function handler(req, res) {
   const { method } = req;
   const { id } = req.query;
-  const feedbackId = parseInt(id);
+  const feedbackId = id.toString();
 
   // Find the feedback item
-  const feedbackIndex = feedback.findIndex(item => item.id === feedbackId);
+  const feedbackIndex = feedback.findIndex(item => item.id.toString() === feedbackId);
 
   // If feedback not found
   if (feedbackIndex === -1) {

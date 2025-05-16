@@ -23,9 +23,11 @@ export const FeedbackProvider = ({ children }) => {
   // Fetch feedback
   const fetchFeedback = async () => {
     const response = await fetch(`${API_URL}/feedback`);
-    const data = await response.json();
-    data.reverse();
-
+    let data = [];
+    if (response.headers.get('content-type')?.includes('application/json')) {
+      data = await response.json();
+      data.reverse();
+    }
     setFeedback(data);
     setIsLoading(false);
   }
@@ -34,14 +36,13 @@ export const FeedbackProvider = ({ children }) => {
   const addFeedback = async (newFeedback) => {
     const response = await fetch(`${API_URL}/feedback`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newFeedback)
-    })
-    
-    const data = await response.json();
-
+    });
+    let data = {};
+    if (response.headers.get('content-type')?.includes('application/json')) {
+      data = await response.json();
+    }
     setFeedback([data, ...feedback]);
   }
   
@@ -57,17 +58,16 @@ export const FeedbackProvider = ({ children }) => {
   const updateFeedback = async (id, updateItem) => {
     const response = await fetch(`${API_URL}/feedback/${id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updateItem),
     });
-
-    const data = await response.json();
-
+    let data = {};
+    if (response.headers.get('content-type')?.includes('application/json')) {
+      data = await response.json();
+    }
     setFeedback(
       feedback.map((item) => (item.id === id ? { ...item, ...data } : item))
-    )
+    );
   }
 
   // Set item to be updated
