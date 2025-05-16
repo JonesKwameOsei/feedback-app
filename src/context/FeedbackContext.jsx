@@ -56,19 +56,24 @@ export const FeedbackProvider = ({ children }) => {
 
   // Update feedback item
   const updateFeedback = async (id, updateItem) => {
-    const response = await fetch(`${API_URL}/feedback/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updateItem),
-    });
-    let data = {};
-    if (response.headers.get('content-type')?.includes('application/json')) {
-      data = await response.json();
+    try {
+      console.log(`Sending PUT request to ${API_URL}/feedback/${id}`, updateItem);
+      const response = await fetch(`${API_URL}/feedback/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateItem),
+      });
+      let data = {};
+      if (response.headers.get('content-type')?.includes('application/json')) {
+        data = await response.json();
+      }
+      setFeedback(
+        feedback.map((item) => (item.id === id ? { ...item, ...data } : item))
+      );
+    } catch (error) {
+      console.error('Update error:', error);
     }
-    setFeedback(
-      feedback.map((item) => (item.id === id ? { ...item, ...data } : item))
-    );
-  }
+  };
 
   // Set item to be updated
   const editFeedback = (item) => {

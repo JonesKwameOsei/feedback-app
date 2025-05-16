@@ -4,10 +4,19 @@ import { feedback } from '../data.js';
 export default function handler(req, res) {
   const { method } = req;
   const { id } = req.query;
+
+
+
+  // Debug information
+  console.log('Request method:', method);
+  console.log('ID from query:', id);
+  console.log('Request body:', req.body);
+
   const feedbackId = id.toString();
 
   // Find the feedback item
   const feedbackIndex = feedback.findIndex(item => item.id.toString() === feedbackId);
+  console.log('Feedback index:', feedbackIndex);
 
   // If feedback not found
   if (feedbackIndex === -1) {
@@ -23,15 +32,20 @@ export default function handler(req, res) {
 
   // Handle PUT request - update feedback
   if (method === 'PUT') {
-    const updatedFeedback = {
-      ...feedback[feedbackIndex],
-      ...req.body
-    };
+    try {
+      const updatedFeedback = {
+        ...feedback[feedbackIndex],
+        ...req.body
+      };
 
-    // Update in our "database"
-    feedback[feedbackIndex] = updatedFeedback;
+      // Update in our "database"
+      feedback[feedbackIndex] = updatedFeedback;
 
-    return res.status(200).json(updatedFeedback);
+      return res.status(200).json(updatedFeedback);
+    } catch (error) {
+      console.error('Error in PUT processing:', error);
+      return res.status(500).json({ message: 'Error processing PUT request', error: error.message });
+    }
   }
 
   // Method not supported
