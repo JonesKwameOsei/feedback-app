@@ -1,6 +1,6 @@
-// /api/data.js
-// This will act as our "database"
-let feedback = [
+// api/data.js
+// Create a properly defined module.exports
+const feedback = [
   {
     id: 1,
     rating: 10,
@@ -18,5 +18,4 @@ let feedback = [
   }
 ];
 
-// Export the data
-module.exports = { feedback };
+export { feedback };
